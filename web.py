@@ -605,7 +605,7 @@ def delete_camera(cam: str):
     return {"ok": True}
 
 # ---------- vùng cảnh báo ----------
-ZONE_CLASSES = ("person", "car", "bike")
+ZONE_CLASSES = ("person", "car", "bike", "animal")
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 

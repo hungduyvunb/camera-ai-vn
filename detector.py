@@ -7,8 +7,8 @@ import onnxruntime as ort
 from common import MODELS_DIR
 
 # lớp COCO cần dùng -> nhóm hiển thị trên web
-CLASS_GROUPS = {0: "person", 1: "bike", 2: "car", 3: "bike", 5: "car", 7: "car"}
-GROUP_LABELS = {"person": "Người", "car": "Ô tô", "bike": "Xe máy / xe đạp"}
+CLASS_GROUPS = {0: "person", 1: "bike", 2: "car", 3: "bike", 5: "car", 7: "car", 14: "animal", 15: "animal", 16: "animal"}
+GROUP_LABELS = {"person": "Người", "car": "Ô tô", "bike": "Xe máy / xe đạp", "animal": "Động vật"}
 
 
 class ObjectDetector:
