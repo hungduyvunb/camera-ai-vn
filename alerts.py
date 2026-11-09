@@ -242,10 +242,10 @@ class ZoneMonitor:
                 for _, _, (x1, y1, x2, y2) in new:
                     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 255), 4)
                 return
-            overlay = img.copy()
-            cv2.fillPoly(overlay, [poly], (0, 0, 255))
-            cv2.addWeighted(overlay, 0.18, img, 0.82, 0, img)
-            cv2.polylines(img, [poly], True, (0, 0, 255), 3)
+            pass  # bỏ nền đỏ của vùng
+            # cv2.fillPoly(overlay, [poly], (0, 0, 255))
+            # cv2.addWeighted(overlay, 0.18, img, 0.82, 0, img)
+            # cv2.polylines(img, [poly], True, (0, 0, 255), 3)
             for _, _, (x1, y1, x2, y2) in new:
                 cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 255), 4)
 

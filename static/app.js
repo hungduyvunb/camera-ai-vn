@@ -411,7 +411,7 @@ function renderTimeline(items) {
 }
 
 // ---------- Camera ----------
-const ZONE_CLASSES = [["person", "Người"], ["car", "Ô tô"], ["bike", "Xe máy / xe đạp"], ["animal", "Động vật"]];
+const ZONE_CLASSES = [["person", "Người"], ["car", "Ô tô"], ["bike", "Xe máy"], ["bicycle", "Xe đạp"], ["bird", "Chim"], ["cat", "Mèo"], ["dog", "Chó"]];
 const ZONE_COLORS = ["#ff3b30", "#ff9500", "#ffcc00", "#34c759", "#5ac8fa", "#af52de"];
 const zoneColor = (i) => ZONE_COLORS[i % ZONE_COLORS.length];
 
