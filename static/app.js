@@ -144,7 +144,7 @@ async function viewDetections() {
   form.addEventListener("submit", (e) => { e.preventDefault(); offset = 0; load(); });
   document.getElementById("clear").onclick = () => { form.reset(); form.q.value = ""; form.camera.value = ""; form.date_from.value = ""; form.date_to.value = ""; offset = 0; load(); };
   const auto = document.getElementById("auto");
-  refreshTimer = setInterval(() => { if (auto.checked && !$modal.open && offset === 0) load(); }, 10000);
+  refreshTimer = setInterval(() => { if (auto.checked && !$modal.open && offset === 0 && !document.querySelector(".sel-cb:checked")) load(); }, 10000);
   await load();
 }
 
@@ -171,6 +171,52 @@ function renderCards(data, offset, goto) {
     </div>`;
   list.querySelectorAll(".card").forEach((el, i) => (el.onclick = () => openSighting(data.items[i], () => goto(offset))));
   list.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => { goto(Math.max(0, Number(b.dataset.go))); window.scrollTo(0, 0); }));
+  enableBulkDelete(list, "/api/sightings", (n) => goto(n >= data.items.length ? Math.max(0, offset - PAGE_SIZE) : offset));
+}
+
+// ---------- chọn nhiều thẻ để xoá hàng loạt ----------
+function enableBulkDelete(list, basePath, reload) {
+  const grid = list.querySelector(".grid");
+  if (!grid) return;
+  const boxes = [...grid.querySelectorAll(".sel-cb")];
+  if (!boxes.length) return;
+  const bar = document.createElement("div");
+  bar.className = "bulkbar";
+  bar.innerHTML = `<label class="check"><input type="checkbox" id="bulk-all"> Chọn tất cả trang này</label>
+    <span class="grow"></span>
+    <span id="bulk-count"></span>
+    <button type="button" id="bulk-del" class="danger" disabled>Xoá đã chọn</button>`;
+  grid.before(bar);
+  const all = bar.querySelector("#bulk-all");
+  const cnt = bar.querySelector("#bulk-count");
+  const del = bar.querySelector("#bulk-del");
+  const picked = () => boxes.filter((b) => b.checked);
+  const sync = () => {
+    const n = picked().length;
+    cnt.textContent = n ? `Đã chọn ${n}` : "";
+    del.disabled = n === 0;
+    del.textContent = n ? `Xoá đã chọn (${n})` : "Xoá đã chọn";
+    all.checked = n > 0 && n === boxes.length;
+    all.indeterminate = n > 0 && n < boxes.length;
+    boxes.forEach((b) => b.closest(".card").classList.toggle("selected", b.checked));
+  };
+  boxes.forEach((b) => {
+    b.onclick = (e) => { e.stopPropagation(); sync(); };
+    b.closest(".sel").onclick = (e) => e.stopPropagation();
+  });
+  all.onchange = () => { boxes.forEach((b) => (b.checked = all.checked)); sync(); };
+  del.onclick = async () => {
+    const ids = picked().map((b) => b.dataset.id);
+    if (!ids.length) return;
+    if (!confirm(`Xoá ${ids.length} mục đã chọn?\nẢnh và bản ghi sẽ bị xoá vĩnh viễn, không khôi phục được.`)) return;
+    del.disabled = true;
+    let ok = 0, fail = 0;
+    for (const id of ids) {
+      try { await api(`${basePath}/${id}`, { method: "DELETE" }); ok++; } catch (err) { fail++; }
+    }
+    toast(fail ? `Đã xoá ${ok}, lỗi ${fail}` : `Đã xoá ${ok} mục`);
+    reload(ok);
+  };
 }
 
 function cardHtml(s) {
@@ -178,6 +224,7 @@ function cardHtml(s) {
   const score = s.ocr_score >= 0.9 ? "ok" : s.ocr_score >= 0.8 ? "accent" : "warn";
   return `<div class="card">
     <div class="thumb">
+      <label class="sel" title="Chọn để xoá"><input type="checkbox" class="sel-cb" data-id="${s.id}"></label>
       <img class="frame" loading="lazy" src="${img(s.frame_img)}" alt="">
       <img class="crop" loading="lazy" src="${img(s.plate_img)}" alt="">
     </div>
@@ -888,10 +935,11 @@ async function viewEvents() {
       </div>`;
     list.querySelectorAll(".card").forEach((el, i) => (el.onclick = () => openEvent(data.items[i], load)));
     list.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => { offset = Math.max(0, Number(b.dataset.go)); load(); window.scrollTo(0, 0); }));
+    enableBulkDelete(list, "/api/events", (n) => { if (n >= data.items.length) offset = Math.max(0, offset - PAGE_SIZE); load(); });
   };
   form.onsubmit = (e) => { e.preventDefault(); offset = 0; load(); };
   const auto = document.getElementById("auto");
-  refreshTimer = setInterval(() => { if (auto.checked && !$modal.open && offset === 0) load(); }, 10000);
+  refreshTimer = setInterval(() => { if (auto.checked && !$modal.open && offset === 0 && !document.querySelector(".sel-cb:checked")) load(); }, 10000);
   await load();
 }
 
@@ -904,6 +952,7 @@ function eventCardHtml(e) {
   const dur = e.last_seen - e.ts;
   return `<div class="card">
     <div class="thumb">
+      <label class="sel" title="Chọn để xoá"><input type="checkbox" class="sel-cb" data-id="${e.id}"></label>
       <img class="frame" loading="lazy" src="${img(e.frame_img)}" alt="">
       <img class="crop ${e.kind === "face" ? "face" : ""}" loading="lazy" src="${img(e.img)}" alt="">
     </div>
